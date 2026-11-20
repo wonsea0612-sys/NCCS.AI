@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>오늘의 행운 뽑기</title>
+  <script>
+    const savedTheme = localStorage.getItem("lucky-draw-theme");
+    if (savedTheme === "light") document.documentElement.dataset.theme = savedTheme;
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -16,6 +20,49 @@
       --muted: #9ba4b8;
       --line: rgba(255, 255, 255, .1);
       --lime: #d7fa6e;
+      --page-bg: #101522;
+      --panel-bg: rgba(25, 32, 48, .88);
+      --control-bg: #141a28;
+      --control-text: #f6f7fb;
+      --hint: #818ba0;
+      --label: #c4cada;
+      --secondary-text: #aeb7c9;
+      --secondary-hover-border: rgba(255, 255, 255, .28);
+      --secondary-hover-text: #fff;
+      --result-tag: #8792a8;
+      --empty-text: #778197;
+      --winner-rank: #aabd76;
+      --result-foot: #7f899d;
+      --result-foot-strong: #c6cedd;
+      --panel-shadow: 0 18px 60px rgba(0, 0, 0, .18);
+      --winner-border: rgba(215, 250, 110, .2);
+      --winner-bg: linear-gradient(110deg, rgba(215, 250, 110, .09), rgba(215, 250, 110, .025));
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      background: #f4f6fb;
+      color: #1c2434;
+      --muted: #687386;
+      --line: rgba(26, 38, 61, .13);
+      --lime: #55770d;
+      --page-bg: #f4f6fb;
+      --panel-bg: rgba(255, 255, 255, .9);
+      --control-bg: #fff;
+      --control-text: #1c2434;
+      --hint: #687386;
+      --label: #465166;
+      --secondary-text: #586477;
+      --secondary-hover-border: rgba(26, 38, 61, .3);
+      --secondary-hover-text: #1c2434;
+      --result-tag: #687386;
+      --empty-text: #687386;
+      --winner-rank: #55770d;
+      --result-foot: #687386;
+      --result-foot-strong: #465166;
+      --panel-shadow: 0 18px 60px rgba(34, 48, 73, .1);
+      --winner-border: rgba(85, 119, 13, .22);
+      --winner-bg: linear-gradient(110deg, rgba(215, 250, 110, .24), rgba(215, 250, 110, .08));
     }
 
     * { box-sizing: border-box; }
@@ -28,20 +75,33 @@
       background:
         radial-gradient(ellipse at 12% 8%, rgba(86, 97, 180, .2), transparent 35%),
         radial-gradient(ellipse at 90% 78%, rgba(63, 117, 91, .13), transparent 32%),
-        #101522;
+        var(--page-bg);
+      color: inherit;
     }
 
     button, textarea, input { font: inherit; }
     button { cursor: pointer; }
 
     .page { width: min(100%, 1000px); margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .topline { display: flex; align-items: center; gap: 10px; color: var(--lime); font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
     .topline::before { width: 9px; height: 9px; border-radius: 50%; background: var(--lime); content: ""; box-shadow: 0 0 16px rgba(215, 250, 110, .8); }
+    .theme-button {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-bg);
+      color: var(--secondary-text);
+      font-size: 13px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .theme-button:hover { border-color: var(--secondary-hover-border); color: var(--secondary-hover-text); }
     h1 { margin: 16px 0 8px; font-size: clamp(32px, 5vw, 48px); letter-spacing: -.055em; }
     .intro { margin: 0; color: var(--muted); font-size: 16px; }
 
     .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .82fr); gap: 18px; margin-top: 34px; }
-    .panel { border: 1px solid var(--line); border-radius: 20px; background: rgba(25, 32, 48, .88); box-shadow: 0 18px 60px rgba(0, 0, 0, .18); }
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--panel-bg); box-shadow: var(--panel-shadow); }
     .setup { padding: 26px; }
     .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
     h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
@@ -57,19 +117,19 @@
       border: 1px solid var(--line);
       border-radius: 13px;
       outline: none;
-      background: #141a28;
-      color: #f6f7fb;
+      background: var(--control-bg);
+      color: var(--control-text);
       font-size: 15px;
       line-height: 1.8;
       transition: border-color .2s, box-shadow .2s;
     }
     textarea::placeholder { color: #727d92; }
     textarea:focus, input:focus { border-color: rgba(215, 250, 110, .7); box-shadow: 0 0 0 3px rgba(215, 250, 110, .1); }
-    .hint { margin: 10px 0 22px; color: #818ba0; font-size: 12px; }
+    .hint { margin: 10px 0 22px; color: var(--hint); font-size: 12px; }
 
     .controls { display: flex; align-items: end; gap: 12px; }
     .winner-field { flex: 0 0 120px; }
-    label { display: block; margin-bottom: 8px; color: #c4cada; font-size: 13px; font-weight: 650; }
+    label { display: block; margin-bottom: 8px; color: var(--label); font-size: 13px; font-weight: 650; }
     input {
       width: 100%;
       height: 48px;
@@ -77,8 +137,8 @@
       border: 1px solid var(--line);
       border-radius: 11px;
       outline: none;
-      background: #141a28;
-      color: #fff;
+      background: var(--control-bg);
+      color: var(--control-text);
       font-size: 16px;
     }
     .draw-button {
@@ -86,7 +146,7 @@
       height: 48px;
       border: 0;
       border-radius: 11px;
-      background: var(--lime);
+      background: #d7fa6e;
       color: #182010;
       font-size: 15px;
       font-weight: 800;
@@ -98,31 +158,31 @@
 
     .result { display: flex; min-height: 100%; flex-direction: column; padding: 26px; }
     .result-head { display: flex; align-items: center; justify-content: space-between; }
-    .result-tag { color: #8792a8; font-size: 12px; letter-spacing: .08em; }
+    .result-tag { color: var(--result-tag); font-size: 12px; letter-spacing: .08em; }
     .reset-button, .sample-button {
       padding: 7px 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: transparent;
-      color: #aeb7c9;
+      color: var(--secondary-text);
       font-size: 12px;
     }
-    .reset-button:hover, .sample-button:hover { border-color: rgba(255,255,255,.28); color: #fff; }
+    .reset-button:hover, .sample-button:hover { border-color: var(--secondary-hover-border); color: var(--secondary-hover-text); }
     .result-body { display: grid; flex: 1; place-items: center; min-height: 245px; padding: 20px 0; text-align: center; }
-    .empty { color: #778197; font-size: 14px; line-height: 1.8; }
+    .empty { color: var(--empty-text); font-size: 14px; line-height: 1.8; }
     .empty-icon { display: block; margin-bottom: 12px; font-size: 38px; filter: grayscale(.25); }
     .winner-list { display: grid; width: 100%; gap: 10px; }
     .winner-card {
       padding: 17px 18px;
-      border: 1px solid rgba(215, 250, 110, .2);
+      border: 1px solid var(--winner-border);
       border-radius: 12px;
-      background: linear-gradient(110deg, rgba(215, 250, 110, .09), rgba(215, 250, 110, .025));
+      background: var(--winner-bg);
       animation: reveal .35s ease both;
     }
-    .winner-card small { display: block; margin-bottom: 5px; color: #aabd76; font-size: 11px; }
+    .winner-card small { display: block; margin-bottom: 5px; color: var(--winner-rank); font-size: 11px; }
     .winner-card strong { font-size: 21px; letter-spacing: -.03em; overflow-wrap: anywhere; }
-    .result-foot { padding-top: 14px; border-top: 1px solid var(--line); color: #7f899d; font-size: 12px; text-align: center; }
-    .result-foot strong { color: #c6cedd; }
+    .result-foot { padding-top: 14px; border-top: 1px solid var(--line); color: var(--result-foot); font-size: 12px; text-align: center; }
+    .result-foot strong { color: var(--result-foot-strong); }
 
     @keyframes reveal { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @media (max-width: 720px) {
@@ -143,7 +203,10 @@
 </head>
 <body>
   <main class="page">
-    <div class="topline">LUCKY DRAW</div>
+    <div class="topbar">
+      <div class="topline">LUCKY DRAW</div>
+      <button class="theme-button" id="theme-button" type="button" aria-label="화이트 모드로 전환">☀️ 화이트 모드</button>
+    </div>
     <h1>오늘의 행운 뽑기</h1>
     <p class="intro">참가자를 입력하고, 행운의 주인공을 뽑아보세요.</p>
 
@@ -184,8 +247,15 @@
     const winnerCountInput = document.querySelector("#winner-count");
     const drawButton = document.querySelector("#draw-button");
     const resetButton = document.querySelector("#reset-button");
+    const themeButton = document.querySelector("#theme-button");
     const resultBody = document.querySelector("#result-body");
     const message = document.querySelector("#message");
+
+    function updateThemeButton() {
+      const isLight = document.documentElement.dataset.theme === "light";
+      themeButton.textContent = isLight ? "🌙 다크 모드" : "☀️ 화이트 모드";
+      themeButton.setAttribute("aria-label", isLight ? "다크 모드로 전환" : "화이트 모드로 전환");
+    }
 
     function getParticipants() {
       return [...new Set(
@@ -249,10 +319,17 @@
 
     participantsInput.addEventListener("input", updateForm);
     drawButton.addEventListener("click", drawWinners);
+    themeButton.addEventListener("click", () => {
+      const theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem("lucky-draw-theme", theme);
+      updateThemeButton();
+    });
     resetButton.addEventListener("click", () => {
       resultBody.innerHTML = '<p class="empty"><span class="empty-icon" aria-hidden="true">🎟️</span>추첨을 시작하면<br>당첨자가 여기에 표시돼요.</p>';
       message.textContent = "";
     });
+    updateThemeButton();
     updateForm();
   </script>
 </body>
