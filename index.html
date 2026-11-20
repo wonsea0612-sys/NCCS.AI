@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>오늘의 행운 뽑기</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101522;
+      color: #f6f7fb;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #9ba4b8;
+      --line: rgba(255, 255, 255, .1);
+      --lime: #d7fa6e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 48px 20px;
+      background:
+        radial-gradient(ellipse at 12% 8%, rgba(86, 97, 180, .2), transparent 35%),
+        radial-gradient(ellipse at 90% 78%, rgba(63, 117, 91, .13), transparent 32%),
+        #101522;
+    }
+
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .page { width: min(100%, 1000px); margin: 0 auto; }
+    .topline { display: flex; align-items: center; gap: 10px; color: var(--lime); font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .topline::before { width: 9px; height: 9px; border-radius: 50%; background: var(--lime); content: ""; box-shadow: 0 0 16px rgba(215, 250, 110, .8); }
+    h1 { margin: 16px 0 8px; font-size: clamp(32px, 5vw, 48px); letter-spacing: -.055em; }
+    .intro { margin: 0; color: var(--muted); font-size: 16px; }
+
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .82fr); gap: 18px; margin-top: 34px; }
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: rgba(25, 32, 48, .88); box-shadow: 0 18px 60px rgba(0, 0, 0, .18); }
+    .setup { padding: 26px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .count { color: var(--muted); font-size: 13px; }
+    .count strong { color: var(--lime); font-size: 15px; }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 255px;
+      resize: vertical;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      outline: none;
+      background: #141a28;
+      color: #f6f7fb;
+      font-size: 15px;
+      line-height: 1.8;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    textarea::placeholder { color: #727d92; }
+    textarea:focus, input:focus { border-color: rgba(215, 250, 110, .7); box-shadow: 0 0 0 3px rgba(215, 250, 110, .1); }
+    .hint { margin: 10px 0 22px; color: #818ba0; font-size: 12px; }
+
+    .controls { display: flex; align-items: end; gap: 12px; }
+    .winner-field { flex: 0 0 120px; }
+    label { display: block; margin-bottom: 8px; color: #c4cada; font-size: 13px; font-weight: 650; }
+    input {
+      width: 100%;
+      height: 48px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+      background: #141a28;
+      color: #fff;
+      font-size: 16px;
+    }
+    .draw-button {
+      flex: 1;
+      height: 48px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--lime);
+      color: #182010;
+      font-size: 15px;
+      font-weight: 800;
+      transition: transform .15s, filter .15s;
+    }
+    .draw-button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.05); }
+    .draw-button:disabled { cursor: not-allowed; opacity: .48; }
+    .message { min-height: 18px; margin: 12px 0 0; color: #ff9a9a; font-size: 13px; }
+
+    .result { display: flex; min-height: 100%; flex-direction: column; padding: 26px; }
+    .result-head { display: flex; align-items: center; justify-content: space-between; }
+    .result-tag { color: #8792a8; font-size: 12px; letter-spacing: .08em; }
+    .reset-button, .sample-button {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: #aeb7c9;
+      font-size: 12px;
+    }
+    .reset-button:hover, .sample-button:hover { border-color: rgba(255,255,255,.28); color: #fff; }
+    .result-body { display: grid; flex: 1; place-items: center; min-height: 245px; padding: 20px 0; text-align: center; }
+    .empty { color: #778197; font-size: 14px; line-height: 1.8; }
+    .empty-icon { display: block; margin-bottom: 12px; font-size: 38px; filter: grayscale(.25); }
+    .winner-list { display: grid; width: 100%; gap: 10px; }
+    .winner-card {
+      padding: 17px 18px;
+      border: 1px solid rgba(215, 250, 110, .2);
+      border-radius: 12px;
+      background: linear-gradient(110deg, rgba(215, 250, 110, .09), rgba(215, 250, 110, .025));
+      animation: reveal .35s ease both;
+    }
+    .winner-card small { display: block; margin-bottom: 5px; color: #aabd76; font-size: 11px; }
+    .winner-card strong { font-size: 21px; letter-spacing: -.03em; overflow-wrap: anywhere; }
+    .result-foot { padding-top: 14px; border-top: 1px solid var(--line); color: #7f899d; font-size: 12px; text-align: center; }
+    .result-foot strong { color: #c6cedd; }
+
+    @keyframes reveal { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @media (max-width: 720px) {
+      body { padding: 34px 16px; }
+      .workspace { grid-template-columns: 1fr; }
+      .result { min-height: 300px; }
+    }
+    @media (max-width: 430px) {
+      .setup, .result { padding: 20px; }
+      .controls { align-items: stretch; flex-direction: column; }
+      .winner-field { flex-basis: auto; }
+      .draw-button { flex: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topline">LUCKY DRAW</div>
+    <h1>오늘의 행운 뽑기</h1>
+    <p class="intro">참가자를 입력하고, 행운의 주인공을 뽑아보세요.</p>
+
+    <div class="workspace">
+      <section class="panel setup" aria-labelledby="participants-title">
+        <div class="section-heading">
+          <h2 id="participants-title">참가자 명단</h2>
+          <span class="count"><strong id="participant-count">0</strong>명 참여</span>
+        </div>
+        <textarea id="participants" aria-label="참가자 명단" placeholder="이름을 한 줄에 한 명씩 입력해 주세요.&#10;&#10;예)&#10;김하늘&#10;이도윤&#10;박서연"></textarea>
+        <p class="hint">줄바꿈 또는 쉼표로 구분해 입력할 수 있어요.</p>
+        <div class="controls">
+          <div class="winner-field">
+            <label for="winner-count">당첨 인원</label>
+            <input id="winner-count" type="number" min="1" value="1" inputmode="numeric">
+          </div>
+          <button class="draw-button" id="draw-button" type="button" disabled>행운 뽑기 <span aria-hidden="true">→</span></button>
+        </div>
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel result" aria-labelledby="result-title">
+        <div class="result-head">
+          <h2 id="result-title">🎉 당첨 결과</h2>
+          <button class="reset-button" id="reset-button" type="button">결과 초기화</button>
+        </div>
+        <div class="result-body" id="result-body" aria-live="polite">
+          <p class="empty"><span class="empty-icon" aria-hidden="true">🎟️</span>추첨을 시작하면<br>당첨자가 여기에 표시돼요.</p>
+        </div>
+        <div class="result-foot">공정한 무작위 추첨 · <strong>중복 당첨 없음</strong></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const participantsInput = document.querySelector("#participants");
+    const participantCount = document.querySelector("#participant-count");
+    const winnerCountInput = document.querySelector("#winner-count");
+    const drawButton = document.querySelector("#draw-button");
+    const resetButton = document.querySelector("#reset-button");
+    const resultBody = document.querySelector("#result-body");
+    const message = document.querySelector("#message");
+
+    function getParticipants() {
+      return [...new Set(
+        participantsInput.value
+          .split(/[\n,]+/)
+          .map((name) => name.trim())
+          .filter(Boolean)
+      )];
+    }
+
+    function updateForm() {
+      const count = getParticipants().length;
+      participantCount.textContent = count;
+      drawButton.disabled = count === 0;
+      message.textContent = "";
+    }
+
+    function drawWinners() {
+      const participants = getParticipants();
+      const winnerCount = Number.parseInt(winnerCountInput.value, 10);
+
+      if (!participants.length) {
+        message.textContent = "참가자 이름을 먼저 입력해 주세요.";
+        return;
+      }
+      if (!Number.isInteger(winnerCount) || winnerCount < 1) {
+        message.textContent = "당첨 인원은 1명 이상으로 입력해 주세요.";
+        winnerCountInput.focus();
+        return;
+      }
+      if (winnerCount > participants.length) {
+        message.textContent = `당첨 인원은 참가자 수(${participants.length}명)보다 많을 수 없어요.`;
+        winnerCountInput.focus();
+        return;
+      }
+
+      const pool = [...participants];
+      const winners = [];
+      for (let i = 0; i < winnerCount; i++) {
+        const index = Math.floor(Math.random() * pool.length);
+        winners.push(pool.splice(index, 1)[0]);
+      }
+
+      const list = document.createElement("div");
+      list.className = "winner-list";
+      winners.forEach((name, index) => {
+        const card = document.createElement("div");
+        card.className = "winner-card";
+        card.style.animationDelay = `${index * 90}ms`;
+        const rank = document.createElement("small");
+        rank.textContent = `${String(index + 1).padStart(2, "0")} WINNER`;
+        const winnerName = document.createElement("strong");
+        winnerName.textContent = name;
+        card.append(rank, winnerName);
+        list.append(card);
+      });
+
+      resultBody.replaceChildren(list);
+      message.textContent = "";
+    }
+
+    participantsInput.addEventListener("input", updateForm);
+    drawButton.addEventListener("click", drawWinners);
+    resetButton.addEventListener("click", () => {
+      resultBody.innerHTML = '<p class="empty"><span class="empty-icon" aria-hidden="true">🎟️</span>추첨을 시작하면<br>당첨자가 여기에 표시돼요.</p>';
+      message.textContent = "";
+    });
+    updateForm();
+  </script>
+</body>
+</html>
